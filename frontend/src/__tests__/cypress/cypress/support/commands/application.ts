@@ -186,7 +186,7 @@ Cypress.Commands.add('visitWithLogin', (relativeUrl, credentials = HTPASSWD_CLUS
     }
     cy.step(`Navigate to: ${fullUrl}`);
     cy.intercept('GET', fullUrl, { log: false }).as('page');
-    cy.visit(fullUrl, { failOnStatusCode: false });
+    cy.visit(fullUrl, { failOnStatusCode: false, timeout: 120000 });
     cy.wait('@page', { log: false }).then((interception) => {
       const statusCode = interception.response?.statusCode;
       if (statusCode === 403) {

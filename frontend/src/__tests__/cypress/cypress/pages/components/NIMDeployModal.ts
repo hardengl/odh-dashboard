@@ -33,6 +33,40 @@ class NIMDeployModal extends Modal {
     return cy.get('[id="model-server-replicas"]');
   }
 
+  findModelServerSizeSelect() {
+    return this.find().findByTestId('model-server-size-selection');
+  }
+
+  findAcceleratorProfileSelect() {
+    return cy.findByTestId('accelerator-profile-select');
+  }
+
+  findStartServerButton() {
+    return cy.findByTestId('start-server-button');
+  }
+
+  selectNIMToDeploy(name: string) {
+    // const items = Array()
+    cy.findByTestId('nim-model-list-selection').click()
+    cy.get('ul[role="listbox"]').within(() => {
+      // cy.get('li').each(($el, index, $list) => {
+      //   if ($el.attr('data-testid')?.includes('latest')) {
+      //     items.push($el.attr('data-testid'))
+      //   }
+      //   cy.log(String($el.attr('data-testid')))
+      // })
+      // cy.writeFile('cypress/fixtures/nimModelList.json', items)
+      cy.findByTestId(name).scrollIntoView().click()
+    });
+  }
+
+  selectAccelerator(name: string) {
+    cy.findByTestId('accelerator-profile-select').click()
+    cy.get('ul[role="listbox"]').within(() => {
+      cy.contains(name).scrollIntoView().click()
+    });
+  }
+
   findNimModelReplicasMinusButton() {
     return this.find().find('button[aria-label="Minus"]').eq(1);
   }
