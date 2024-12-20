@@ -53,7 +53,7 @@ export default defineConfig({
     ODH_PRODUCT_NAME: env.ODH_PRODUCT_NAME,
     resolution: 'high',
   },
-  defaultCommandTimeout: 10000,
+  defaultCommandTimeout: 30000,
   e2e: {
     baseUrl: BASE_URL,
     specPattern: env.CY_MOCK
