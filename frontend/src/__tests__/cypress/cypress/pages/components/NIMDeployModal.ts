@@ -33,6 +33,32 @@ class NIMDeployModal extends Modal {
     return cy.get('[id="model-server-replicas"]');
   }
 
+  findModelServerSizeSelect() {
+    return this.find().findByTestId('model-server-size-selection');
+  }
+
+  findAcceleratorProfileSelect() {
+    return cy.findByTestId('accelerator-profile-select');
+  }
+
+  findStartServerButton() {
+    return cy.findByTestId('start-server-button');
+  }
+
+  selectNIMToDeploy(name: string) {
+    cy.findByTestId('nim-model-list-selection').click()
+    cy.get('ul[role="listbox"]').within(() => {
+      cy.findByTestId(name).scrollIntoView().click()
+    });
+  }
+
+  selectAccelerator(name: string) {
+    cy.findByTestId('accelerator-profile-select').click()
+    cy.get('ul[role="listbox"]').within(() => {
+      cy.contains(name).scrollIntoView().click()
+    });
+  }
+
   findNimModelReplicasMinusButton() {
     return this.find().find('button[aria-label="Minus"]').eq(1);
   }
