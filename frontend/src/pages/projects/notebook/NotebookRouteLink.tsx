@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { Button, ButtonVariant, Flex, FlexItem, Icon, Tooltip } from '@patternfly/react-core';
 import { ExclamationCircleIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
+import {
+  t_global_font_size_body_default as DefaultFontSize,
+  t_global_font_size_body_sm as SmallFontSize,
+} from '@patternfly/react-tokens';
 import { NotebookKind } from '~/k8sTypes';
 import { getDisplayNameFromK8sResource } from '~/concepts/k8s/utils';
 import { fireMiscTrackingEvent } from '~/concepts/analyticsTracking/segmentIOUtils';
@@ -10,10 +14,12 @@ import { hasStopAnnotation } from './utils';
 type NotebookRouteLinkProps = {
   className?: string;
   label?: React.ReactNode;
+  'aria-label'?: string;
   notebook: NotebookKind;
   isRunning: boolean;
   variant?: ButtonVariant;
   isLarge?: boolean;
+  buttonStyle?: React.CSSProperties | undefined;
 };
 
 const NotebookRouteLink: React.FC<NotebookRouteLinkProps> = ({
@@ -21,8 +27,10 @@ const NotebookRouteLink: React.FC<NotebookRouteLinkProps> = ({
   label,
   notebook,
   isRunning,
+  'aria-label': ariaLabel,
   variant,
   isLarge,
+  buttonStyle,
 }) => {
   const [routeLink, loaded, error] = useRouteForNotebook(
     notebook.metadata.name,
@@ -45,11 +53,11 @@ const NotebookRouteLink: React.FC<NotebookRouteLinkProps> = ({
           variant={variant || 'link'}
           icon={!error && <ExternalLinkAltIcon />}
           iconPosition="end"
+          aria-label={ariaLabel}
           style={{
             whiteSpace: 'nowrap',
-            fontSize: isLarge
-              ? 'var(--pf-t--global--font--size--body--default)'
-              : 'var(--pf-t--global--font--size--body--sm)',
+            fontSize: isLarge ? DefaultFontSize.var : SmallFontSize.var,
+            ...(buttonStyle || {}),
           }}
           onClick={() => {
             fireMiscTrackingEvent('Workbench Opened', {

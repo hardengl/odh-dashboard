@@ -8,6 +8,7 @@ import {
   globArtifactsAll,
   globExecutionsAll,
   globExperimentsAll,
+  globModelCustomizationAll,
   globPipelineRunsAll,
   globPipelinesAll,
 } from '~/routes';
@@ -44,6 +45,9 @@ const GlobalPipelineExperimentRoutes = React.lazy(
 const GlobalPipelineExecutionsRoutes = React.lazy(
   () => import('../pages/pipelines/GlobalPipelineExecutionsRoutes'),
 );
+const GlobalModelCustomizationRoutes = React.lazy(
+  () => import('../pages/pipelines/GlobalModelCustomizationRoutes'),
+);
 
 const GlobalArtifactsRoutes = React.lazy(() => import('../pages/pipelines/GlobalArtifactsRoutes'));
 
@@ -57,7 +61,7 @@ const CustomServingRuntimeRoutes = React.lazy(
 );
 const GroupSettingsPage = React.lazy(() => import('../pages/groupSettings/GroupSettings'));
 const LearningCenterPage = React.lazy(() => import('../pages/learningCenter/LearningCenter'));
-const BYONImagesPage = React.lazy(() => import('../pages/BYONImages/BYONImages'));
+const BYONImageRoutes = React.lazy(() => import('../pages/BYONImages/BYONImageRoutes'));
 const NotFound = React.lazy(() => import('../pages/NotFound'));
 
 const DependencyMissingPage = React.lazy(
@@ -74,13 +78,17 @@ const HardwareProfileRoutes = React.lazy(
 
 const StorageClassesPage = React.lazy(() => import('../pages/storageClasses/StorageClassesPage'));
 
+const ModelCatalogRoutes = React.lazy(() => import('../pages/modelCatalog/ModelCatalogRoutes'));
+
 const ModelRegistryRoutes = React.lazy(() => import('../pages/modelRegistry/ModelRegistryRoutes'));
+
+const ExternalRoutes = React.lazy(() => import('../pages/external/ExternalRoutes'));
 
 const AppRoutes: React.FC = () => {
   const { isAdmin, isAllowed } = useUser();
   const isJupyterEnabled = useCheckJupyterEnabled();
   const isHomeAvailable = useIsAreaAvailable(SupportedArea.HOME).status;
-  const isConnectionTypesAvailable = useIsAreaAvailable(SupportedArea.CONNECTION_TYPES).status;
+  const isFineTuningAvailable = useIsAreaAvailable(SupportedArea.FINE_TUNING).status;
 
   if (!isAllowed) {
     return (
@@ -94,6 +102,7 @@ const AppRoutes: React.FC = () => {
     <React.Suspense fallback={<ApplicationsPage title="" description="" loaded={false} empty />}>
       <InvalidArgoDeploymentAlert />
       <Routes>
+        <Route path="/external/*" element={<ExternalRoutes />} />
         {isHomeAvailable ? (
           <>
             <Route path="/" element={<HomePage />} />
@@ -118,6 +127,8 @@ const AppRoutes: React.FC = () => {
 
         <Route path="/modelServing/*" element={<ModelServingRoutes />} />
 
+        <Route path="/modelCatalog/*" element={<ModelCatalogRoutes />} />
+
         <Route path="/modelRegistry/*" element={<ModelRegistryRoutes />} />
 
         <Route path={globPipelinesAll} element={<GlobalPipelinesRoutes />} />
@@ -125,6 +136,9 @@ const AppRoutes: React.FC = () => {
         <Route path={globExperimentsAll} element={<GlobalPipelineExperimentRoutes />} />
         <Route path={globArtifactsAll} element={<GlobalArtifactsRoutes />} />
         <Route path={globExecutionsAll} element={<GlobalPipelineExecutionsRoutes />} />
+        {isFineTuningAvailable && (
+          <Route path={globModelCustomizationAll} element={<GlobalModelCustomizationRoutes />} />
+        )}
 
         <Route path="/distributedWorkloads/*" element={<GlobalDistributedWorkloadsRoutes />} />
 
@@ -132,19 +146,17 @@ const AppRoutes: React.FC = () => {
 
         {isAdmin && (
           <>
-            <Route path="/notebookImages" element={<BYONImagesPage />} />
+            <Route path="/notebookImages/*" element={<BYONImageRoutes />} />
             <Route path="/clusterSettings" element={<ClusterSettingsPage />} />
             <Route path="/acceleratorProfiles/*" element={<AcceleratorProfileRoutes />} />
-            <Route path="/hardwareProfiles/*" element={<HardwareProfileRoutes />} />
             <Route path="/servingRuntimes/*" element={<CustomServingRuntimeRoutes />} />
-            {isConnectionTypesAvailable ? (
-              <Route path="/connectionTypes/*" element={<ConnectionTypeRoutes />} />
-            ) : null}
+            <Route path="/connectionTypes/*" element={<ConnectionTypeRoutes />} />
             <Route path="/storageClasses/*" element={<StorageClassesPage />} />
             <Route path="/modelRegistrySettings/*" element={<ModelRegistrySettingsRoutes />} />
             <Route path="/groupSettings" element={<GroupSettingsPage />} />
           </>
         )}
+        <Route path="/hardwareProfiles/*" element={<HardwareProfileRoutes />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

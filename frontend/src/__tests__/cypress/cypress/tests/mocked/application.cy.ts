@@ -1,12 +1,9 @@
 import { appChrome } from '~/__tests__/cypress/cypress/pages/appChrome';
-import {
-  asDisallowedUser,
-  asProductAdminUser,
-  asProjectAdminUser,
-} from '~/__tests__/cypress/cypress/utils/mockUsers';
+import { asDisallowedUser, asProductAdminUser } from '~/__tests__/cypress/cypress/utils/mockUsers';
 import { mockDashboardConfig } from '~/__mocks__';
 import { aboutDialog } from '~/__tests__/cypress/cypress/pages/aboutDialog';
 import { mockConsoleLinks } from '~/__mocks__/mockConsoleLinks';
+import { loginDialog } from '~/__tests__/cypress/cypress/pages/loginDialog';
 
 describe('Application', () => {
   it('should disallow access to the dashboard', () => {
@@ -14,12 +11,6 @@ describe('Application', () => {
     appChrome.visit();
     appChrome.shouldBeUnauthorized();
     appChrome.findNavToggle().should('not.exist');
-  });
-
-  it('should not show Settings nav section for non product admins', () => {
-    asProjectAdminUser();
-    appChrome.visit();
-    appChrome.findNavSection('Settings').should('not.exist');
   });
 
   it('should show Settings nav section for cluster admins', () => {
@@ -112,5 +103,29 @@ describe('Application', () => {
 
     aboutDialog.findText().should('contain.text', 'OpenShift');
     aboutDialog.findProductName().should('contain.text', 'OpenShift AI');
+  });
+  it('should show the login modal when receiving a 403 status code', () => {
+    // Mock the intercept to return a 403 status code
+    cy.interceptOdh('GET /api/config', {
+      statusCode: 403,
+    }).as('getData403');
+
+    // Set up the sign-out intercept before visiting the page
+    cy.interceptOdh('GET /oauth/sign_out').as('signOut');
+
+    // Visit the page where the request is triggered
+    cy.visit('/');
+
+    // Wait for the intercept to be triggered
+    cy.wait('@getData403');
+
+    // Verify that the login modal is displayed
+    loginDialog.shouldBeOpen();
+
+    // Simulate clicking the Log in button
+    loginDialog.findLoginButton().click();
+
+    // Wait for the sign out intercept to be triggered
+    cy.wait('@signOut');
   });
 });

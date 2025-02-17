@@ -18,7 +18,7 @@ import {
   getCreatorFromK8sResource,
   getDescriptionFromK8sResource,
   getDisplayNameFromK8sResource,
-  ownedByDSC,
+  isOOTB,
 } from '~/concepts/k8s/utils';
 import { connectionTypeColumns } from '~/pages/connectionTypes/columns';
 import CategoryLabel from '~/concepts/connectionTypes/CategoryLabel';
@@ -87,7 +87,6 @@ const ConnectionTypesTableRow: React.FC<ConnectionTypesTableRowProps> = ({
     <Tr>
       <Td dataLabel={connectionTypeColumns[0].label}>
         <TableRowTitleDescription
-          boldTitle={false}
           title={<Truncate content={getDisplayNameFromK8sResource(obj)} />}
           description={getDescriptionFromK8sResource(obj)}
           truncateDescriptionLines={2}
@@ -116,11 +115,7 @@ const ConnectionTypesTableRow: React.FC<ConnectionTypesTableRowProps> = ({
         )}
       </Td>
       <Td dataLabel={connectionTypeColumns[3].label} data-testid="connection-type-creator">
-        {ownedByDSC(obj) ? (
-          <Label data-testid="connection-type-user-label">{creator}</Label>
-        ) : (
-          creator
-        )}
+        {isOOTB(obj) ? <Label data-testid="connection-type-user-label">{creator}</Label> : creator}
       </Td>
       <Td
         dataLabel={connectionTypeColumns[4].label}
@@ -147,21 +142,27 @@ const ConnectionTypesTableRow: React.FC<ConnectionTypesTableRowProps> = ({
               title: 'Preview',
               onClick: () => setShowPreview(true),
             },
-            {
-              title: 'Edit',
-              onClick: () => navigate(`/connectionTypes/edit/${obj.metadata.name}`),
-              isDisabled: ownedByDSC(obj),
-            },
+            ...(!isOOTB(obj)
+              ? [
+                  {
+                    title: 'Edit',
+                    onClick: () => navigate(`/connectionTypes/edit/${obj.metadata.name}`),
+                  },
+                ]
+              : []),
             {
               title: 'Duplicate',
               onClick: () => navigate(`/connectionTypes/duplicate/${obj.metadata.name}`),
             },
-            { isSeparator: true },
-            {
-              title: 'Delete',
-              onClick: () => handleDelete(obj),
-              isDisabled: ownedByDSC(obj),
-            },
+            ...(!isOOTB(obj)
+              ? [
+                  { isSeparator: true },
+                  {
+                    title: 'Delete',
+                    onClick: () => handleDelete(obj),
+                  },
+                ]
+              : []),
           ]}
         />
       </Td>

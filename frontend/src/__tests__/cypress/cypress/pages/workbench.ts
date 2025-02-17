@@ -78,6 +78,14 @@ class EnvironmentVariableTypeField extends Contextual<HTMLElement> {
     this.findUploadPipelineInput().selectFile([filePath], { force: true });
   }
 
+  findKeyInput() {
+    return this.find().findByTestId('key-input');
+  }
+
+  findKeyValue() {
+    return this.find().findByTestId('value-input');
+  }
+
   selectEnvDataType(name: string) {
     this.find()
       .findByTestId('env-data-type-field')
@@ -120,6 +128,20 @@ class NotebookConfirmModal extends Modal {
 
   findStopWorkbenchButton() {
     return this.find().findByTestId('stop-workbench-button');
+  }
+}
+
+class NotebookDeleteModal extends Modal {
+  constructor() {
+    super('Delete workbench?');
+  }
+
+  findDeleteModal() {
+    return cy.get('[data-testid="delete-modal-input"]');
+  }
+
+  findDeleteWorkbenchButton() {
+    return cy.contains('span.pf-v6-c-button__text', 'Delete workbench');
   }
 }
 
@@ -185,8 +207,12 @@ class NotebookRow extends TableRow {
     return this.find().findByTestId('notebook-stop-action');
   }
 
-  findNotebookStatusPopover(name: string) {
-    return cy.findByTestId('notebook-status-popover').contains(name);
+  findNotebookStatusModal() {
+    return cy.findByTestId('notebook-status-modal');
+  }
+
+  findNotebookDescription(name: string) {
+    return this.find().findByTestId('table-row-title-description').contains(name);
   }
 }
 
@@ -288,6 +314,10 @@ class CreateSpawnerPage {
     return cy.findByTestId('workbench-name');
   }
 
+  getDescriptionInput() {
+    return cy.findByTestId('workbench-description');
+  }
+
   private findPVSizeField() {
     return cy.findByTestId('create-new-storage-size');
   }
@@ -352,52 +382,6 @@ class CreateSpawnerPage {
 
   findAddVariableButton() {
     return cy.findByTestId('add-variable-button');
-  }
-
-  findDataConnectionCheckbox() {
-    return cy.findByTestId('enable-data-connection-checkbox');
-  }
-
-  findNewDataConnectionRadio() {
-    return cy.findByTestId('new-data-connection-radio');
-  }
-
-  findExistingDataConnectionRadio() {
-    return cy.findByTestId('existing-data-connection-type-radio');
-  }
-
-  findExistingDataConnectionSelect() {
-    return cy.findByTestId('existing-data-connection-select');
-  }
-
-  findExistingDataConnectionSelectValueField() {
-    return this.findExistingDataConnectionSelect().findByRole('combobox', {
-      name: 'Type to filter',
-    });
-  }
-
-  findAwsNameInput() {
-    return cy.findByTestId('field Name');
-  }
-
-  findAwsKeyInput() {
-    return cy.findByTestId('field AWS_ACCESS_KEY_ID');
-  }
-
-  findAwsSecretKeyInput() {
-    return cy.findByTestId('field AWS_SECRET_ACCESS_KEY');
-  }
-
-  findEndpointInput() {
-    return cy.findByTestId('field AWS_S3_ENDPOINT');
-  }
-
-  findRegionInput() {
-    return cy.findByTestId('field AWS_DEFAULT_REGION');
-  }
-
-  findBucketInput() {
-    return cy.findByTestId('field AWS_S3_BUCKET');
   }
 
   findContainerSizeInput(name: string) {
@@ -473,11 +457,80 @@ class NotFoundSpawnerPage {
   }
 }
 
+class WorkbenchStatusModal extends Modal {
+  constructor() {
+    super('Workbench status');
+  }
+
+  findProgressTab() {
+    return cy.findByTestId('expand-progress');
+  }
+
+  findProgressSteps() {
+    return cy.findByTestId('notebook-startup-steps').find('[data-testid^="step-status-"]');
+  }
+
+  getStepTitle($step: JQuery<HTMLElement>) {
+    return cy.wrap($step).find('[id$="-title"]').invoke('text');
+  }
+
+  assertStepSuccess($step: JQuery<HTMLElement>) {
+    return cy
+      .wrap($step)
+      .should('have.attr', 'data-testid')
+      .and('match', /^step-status-Success/);
+  }
+
+  findEventlogTab() {
+    return cy.findByTestId('expand-logs');
+  }
+
+  findLogEntry(text: string) {
+    return cy.get('ul[data-id="event-logs"]').find('li span').contains(text);
+  }
+
+  getNotebookStatus(expectedStatus: string, timeout?: number) {
+    return cy
+      .get(
+        '[data-testid="notebook-status-text"]',
+        // Only pass timeout if it's explicitly provided
+        timeout !== undefined ? { timeout } : {},
+      )
+      .should('contain.text', expectedStatus);
+  }
+
+  findStopWorkbenchFooterButton() {
+    return cy.get('[data-id="close-spawn"]');
+  }
+
+  findEditWorkbenchFooterButton() {
+    return cy.get('[data-id="edit-workbench"]');
+  }
+
+  findStartWorkbenchFooterButton() {
+    return cy.get('[data-id="start-spawn"]');
+  }
+
+  findStopWorkbenchButton() {
+    return cy.findByTestId('stop-workbench-button');
+  }
+
+  findStartWorkbenchButton() {
+    return cy.findByTestId('start-workbench-button');
+  }
+
+  getModalCloseButton() {
+    return cy.get('[aria-label="Close"]');
+  }
+}
+
 export const workbenchPage = new WorkbenchPage();
 export const createSpawnerPage = new CreateSpawnerPage();
 export const notebookConfirmModal = new NotebookConfirmModal();
+export const notebookDeleteModal = new NotebookDeleteModal();
 export const editSpawnerPage = new EditSpawnerPage();
 export const storageModal = new StorageModal();
 export const notFoundSpawnerPage = new NotFoundSpawnerPage();
 export const attachConnectionModal = new AttachConnectionModal();
 export const attachExistingStorageModal = new AttachExistingStorageModal();
+export const workbenchStatusModal = new WorkbenchStatusModal();

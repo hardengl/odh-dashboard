@@ -26,6 +26,8 @@
     "build": "run-s build:clean tsc:prod",
     "build:clean": "rimraf ./dist",
     "test": "run-s test:lint test:type-check test:jest",
+    "test:unit-coverage": "run-s test:lint test:type-check test:jest:coverage",
+    "test:jest:coverage": "rimraf jest-coverage && jest --silent --coverage --coverageReporters=json --coverageReporters=lcov",
     "test:lint": "eslint --max-warnings 0 --ext .json,.js,.ts ./src",
     "test:fix": "eslint --ext .json,.js,.ts ./src --fix",
     "test:type-check": "tsc --noEmit",
@@ -85,6 +87,7 @@
   "overrides": {
     "tough-cookie": "^4.1.3",
     "ws": "^8.17.1",
-    "@types/tar": "^6.1.13"
+    "@types/tar": "^6.1.13",
+    "jsonpath-plus": "^10.2.0"
   }
 }

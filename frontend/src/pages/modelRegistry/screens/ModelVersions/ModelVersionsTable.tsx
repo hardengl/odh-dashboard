@@ -23,12 +23,15 @@ const ModelVersionsTable: React.FC<ModelVersionsTableProps> = ({
   isArchiveModel,
   refresh,
 }) => {
-  const { registeredModelId } = useParams();
-  const inferenceServices = useMakeFetchObject(useInferenceServices(undefined, registeredModelId));
+  const { mrName, registeredModelId } = useParams();
+  const inferenceServices = useMakeFetchObject(
+    useInferenceServices(undefined, registeredModelId, undefined, mrName),
+  );
   const hasDeploys = (mvId: string) =>
     !!inferenceServices.data.some(
       (s) => s.metadata.labels?.[KnownLabels.MODEL_VERSION_ID] === mvId,
     );
+
   return (
     <Table
       data-testid="model-versions-table"

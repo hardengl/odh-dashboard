@@ -15,7 +15,7 @@ class PipelineImportModal extends Modal {
   }
 
   findSubmitButton() {
-    return this.findFooter().findByRole('button', { name: 'Upload', hidden: true });
+    return cy.findByTestId('modal-submit-button');
   }
 
   findVersionNameInput() {
@@ -51,14 +51,14 @@ class PipelineImportModal extends Modal {
   }
 
   findImportModalError() {
-    return this.find().findByTestId('import-modal-error');
+    return this.find().findByTestId('error-message-alert');
   }
 
   selectPipelineByName(name: string) {
     this.pipelineSelector
       .findToggleButton()
       .click()
-      .parents()
+      .document()
       .findByTestId('pipeline-selector-table-list')
       .find('tr')
       .contains(name)

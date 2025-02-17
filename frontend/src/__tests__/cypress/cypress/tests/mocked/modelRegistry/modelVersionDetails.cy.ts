@@ -26,6 +26,7 @@ import { modelVersionDetails } from '~/__tests__/cypress/cypress/pages/modelRegi
 import { InferenceServiceModelState } from '~/pages/modelServing/screens/types';
 import { modelServingGlobal } from '~/__tests__/cypress/cypress/pages/modelServing';
 import { ModelRegistryMetadataType, ModelState } from '~/concepts/modelRegistry/types';
+import { KnownLabels } from '~/k8sTypes';
 
 const MODEL_REGISTRY_API_VERSION = 'v1alpha3';
 const mockModelVersions = mockModelVersion({
@@ -444,6 +445,32 @@ describe('Model version details', () => {
           mockInferenceServiceK8sResource({
             url: 'test-inference-status.url.com',
             activeModelState: InferenceServiceModelState.LOADED,
+            additionalLabels: {
+              [KnownLabels.REGISTERED_MODEL_ID]: '1',
+              [KnownLabels.MODEL_VERSION_ID]: '1',
+            },
+          }),
+          mockInferenceServiceK8sResource({
+            url: 'test-inference-status.url.com',
+            displayName: 'Test Inference Service-2',
+            name: 'Test Inference Service-2',
+            activeModelState: InferenceServiceModelState.LOADED,
+            additionalLabels: {
+              [KnownLabels.REGISTERED_MODEL_ID]: '1',
+              [KnownLabels.MODEL_VERSION_ID]: '1',
+              [KnownLabels.MODEL_REGISTRY_NAME]: 'modelregistry-sample',
+            },
+          }),
+          mockInferenceServiceK8sResource({
+            url: 'test-inference-status.url.com',
+            displayName: 'Test Inference Service-3',
+            name: 'Test Inference Service-3',
+            activeModelState: InferenceServiceModelState.LOADED,
+            additionalLabels: {
+              [KnownLabels.REGISTERED_MODEL_ID]: '1',
+              [KnownLabels.MODEL_VERSION_ID]: '1',
+              [KnownLabels.MODEL_REGISTRY_NAME]: 'modelregistry-sample-1',
+            },
           }),
         ]),
       );
@@ -456,6 +483,8 @@ describe('Model version details', () => {
       modelVersionDetails.findRegisteredDeploymentsTab().click();
 
       modelServingGlobal.getModelRow('Test Inference Service').should('exist');
+      modelServingGlobal.getModelRow('Test Inference Service-2').should('exist');
+      modelServingGlobal.findRows().should('have.length', 2);
     });
   });
 
@@ -477,6 +506,18 @@ describe('Model version details', () => {
         },
         mockModelArtifact({}),
       ).as('updateModelFormat');
+
+      cy.interceptOdh(
+        'PATCH /api/service/modelregistry/:serviceName/api/model_registry/:apiVersion/registered_models/:registeredModelId',
+        {
+          path: {
+            serviceName: 'modelregistry-sample',
+            apiVersion: MODEL_REGISTRY_API_VERSION,
+            registeredModelId: '1',
+          },
+        },
+        mockRegisteredModel({}),
+      );
 
       modelVersionDetails.findSourceModelFormat('edit').click();
       modelVersionDetails
@@ -505,6 +546,18 @@ describe('Model version details', () => {
         },
         mockModelArtifact({}),
       ).as('updateModelVersion');
+
+      cy.interceptOdh(
+        'PATCH /api/service/modelregistry/:serviceName/api/model_registry/:apiVersion/registered_models/:registeredModelId',
+        {
+          path: {
+            serviceName: 'modelregistry-sample',
+            apiVersion: MODEL_REGISTRY_API_VERSION,
+            registeredModelId: '1',
+          },
+        },
+        mockRegisteredModel({}),
+      );
 
       modelVersionDetails.findSourceModelVersion('edit').click();
       modelVersionDetails.findSourceModelVersion('group').find('input').clear().type('2.0.0');

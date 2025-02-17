@@ -35,16 +35,20 @@ export type DashboardConfig = K8sResourceCommon & {
       disableKServeAuth: boolean;
       disableKServeMetrics: boolean;
       disableKServeRaw: boolean;
+      disableKServeOCIModels: boolean;
       disableModelMesh: boolean;
       disableAcceleratorProfiles: boolean;
       disableHardwareProfiles: boolean;
       disableDistributedWorkloads: boolean;
+      disableModelCatalog: boolean;
       disableModelRegistry: boolean;
       disableModelRegistrySecureDB: boolean;
       disableServingRuntimeParams: boolean;
       disableConnectionTypes: boolean;
       disableStorageClasses: boolean;
       disableNIMModelServing: boolean;
+      disableAdminConnectionTypes: boolean;
+      disableFineTuning: boolean;
     };
     /** @deprecated -- replacing this with Platform Auth resource -- remove when this is no longer in the CRD */
     groupsConfig?: {
@@ -1204,7 +1208,20 @@ export type ModelRegistryKind = K8sResourceCommon & {
         port?: number;
         skipDBCreation?: boolean;
         username?: string;
-      };
+      } & EitherNotBoth<
+        {
+          sslRootCertificateConfigMap?: {
+            name: string;
+            key: string;
+          };
+        },
+        {
+          sslRootCertificateSecret?: {
+            name: string;
+            key: string;
+          };
+        }
+      >;
     },
     {
       postgres?: {
@@ -1234,6 +1251,12 @@ export type ResponseStatus = {
 export enum ServiceAddressAnnotation {
   EXTERNAL_REST = 'routing.opendatahub.io/external-address-rest',
   EXTERNAL_GRPC = 'routing.opendatahub.io/external-address-grpc',
+}
+
+export enum VariablesValidationStatus {
+  UNKNOWN = 'Unknown',
+  FAILED = 'False',
+  SUCCESS = 'True',
 }
 
 export type NIMAccountKind = K8sResourceCommon & {

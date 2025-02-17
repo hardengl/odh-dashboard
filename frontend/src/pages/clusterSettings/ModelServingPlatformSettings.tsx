@@ -7,43 +7,46 @@ import {
   Checkbox,
   Flex,
   FlexItem,
-  Popover,
+  FormGroup,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
-import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import SettingSection from '~/components/SettingSection';
+import SimpleSelect from '~/components/SimpleSelect';
 import { ModelServingPlatformEnabled } from '~/types';
 import useServingPlatformStatuses from '~/pages/modelServing/useServingPlatformStatuses';
-import { useAccessReview } from '~/api';
-import { AccessReviewResourceAttributes } from '~/k8sTypes';
+import { useKServeDeploymentMode } from '~/pages/modelServing/useKServeDeploymentMode';
+import { DataScienceClusterModel } from '~/api';
+import { DeploymentMode } from '~/k8sTypes';
 import { useOpenShiftURL } from '~/utilities/clusterUtils';
+import DashboardHelpTooltip from '~/concepts/dashboard/DashboardHelpTooltip';
+import { useAccessAllowed, verbModelAccess } from '~/concepts/userSSAR';
 
 type ModelServingPlatformSettingsProps = {
   initialValue: ModelServingPlatformEnabled;
   enabledPlatforms: ModelServingPlatformEnabled;
   setEnabledPlatforms: (platforms: ModelServingPlatformEnabled) => void;
-};
-
-const accessReviewResource: AccessReviewResourceAttributes = {
-  group: 'datasciencecluster.opendatahub.io/v1',
-  resource: 'DataScienceCluster',
-  verb: 'update',
+  defaultDeploymentMode: DeploymentMode;
+  setDefaultDeploymentMode: (mode: DeploymentMode) => void;
 };
 
 const ModelServingPlatformSettings: React.FC<ModelServingPlatformSettingsProps> = ({
   initialValue,
   enabledPlatforms,
   setEnabledPlatforms,
+  defaultDeploymentMode,
+  setDefaultDeploymentMode,
 }) => {
+  const { isRawAvailable, isServerlessAvailable } = useKServeDeploymentMode();
   const [alert, setAlert] = React.useState<{ variant: AlertVariant; message: string }>();
   const {
     kServe: { installed: kServeInstalled },
     modelMesh: { installed: modelMeshInstalled },
   } = useServingPlatformStatuses();
 
-  const [allowUpdate] = useAccessReview(accessReviewResource);
   const url = useOpenShiftURL();
+
+  const [allowedToPatchDSC] = useAccessAllowed(verbModelAccess('patch', DataScienceClusterModel));
 
   React.useEffect(() => {
     const kServeDisabled = !enabledPlatforms.kServe || !kServeInstalled;
@@ -79,12 +82,12 @@ const ModelServingPlatformSettings: React.FC<ModelServingPlatformSettingsProps> 
           <FlexItem>
             Select the serving platforms that can be used for deploying models on this cluster.
           </FlexItem>
-          <Popover
-            bodyContent={
+          <DashboardHelpTooltip
+            content={
               <>
                 To modify the availability of model serving platforms, ask your cluster admin to
                 manage the respective components in the{' '}
-                {allowUpdate && url ? (
+                {allowedToPatchDSC && url ? (
                   <Button
                     isInline
                     variant="link"
@@ -102,9 +105,7 @@ const ModelServingPlatformSettings: React.FC<ModelServingPlatformSettingsProps> 
                 resource.
               </>
             }
-          >
-            <OutlinedQuestionCircleIcon />
-          </Popover>
+          />
         </Flex>
       }
     >
@@ -112,6 +113,7 @@ const ModelServingPlatformSettings: React.FC<ModelServingPlatformSettingsProps> 
         <StackItem>
           <Checkbox
             label="Single-model serving platform"
+            description="Each model is deployed on its own model server. Choose this option when you want to deploy a large model such as a large language model (LLM)."
             isDisabled={!kServeInstalled}
             isChecked={kServeInstalled && enabledPlatforms.kServe}
             onChange={(e, enabled) => {
@@ -125,11 +127,50 @@ const ModelServingPlatformSettings: React.FC<ModelServingPlatformSettingsProps> 
             id="single-model-serving-platform-enabled-checkbox"
             data-testid="single-model-serving-platform-enabled-checkbox"
             name="singleModelServingPlatformEnabledCheckbox"
+            body={
+              kServeInstalled &&
+              isRawAvailable && (
+                <FormGroup
+                  fieldId="default-deployment-mode-select"
+                  label="Default deployment mode"
+                  labelHelp={
+                    <DashboardHelpTooltip content="Deployment modes define which technology stack will be used to deploy a model, offering different levels of management and scalability. The default deployment mode will be automatically selected during deployment." />
+                  }
+                >
+                  <SimpleSelect
+                    toggleProps={{ id: 'default-deployment-mode-select' }}
+                    dataTestId="default-deployment-mode-select"
+                    value={defaultDeploymentMode}
+                    onChange={(key: string) => {
+                      const mode = Object.values(DeploymentMode).find((v) => key === v);
+                      if (mode) {
+                        setDefaultDeploymentMode(mode);
+                      }
+                    }}
+                    options={[
+                      {
+                        key: DeploymentMode.RawDeployment,
+                        label: 'Standard (No additional dependencies)',
+                        isDisabled: !allowedToPatchDSC,
+                      },
+                      {
+                        key: DeploymentMode.Serverless,
+                        label: 'Advanced (Serverless and Service Mesh)',
+                        isDisabled: !isServerlessAvailable || !allowedToPatchDSC,
+                      },
+                    ]}
+                    isDisabled={!enabledPlatforms.kServe}
+                    popperProps={{ maxWidth: undefined }}
+                  />
+                </FormGroup>
+              )
+            }
           />
         </StackItem>
         <StackItem>
           <Checkbox
             label="Multi-model serving platform"
+            description="Multiple models can be deployed on one shared model server. Useful for deploying a number of small or medium-sized models that can share the server resources."
             isDisabled={!modelMeshInstalled}
             isChecked={modelMeshInstalled && enabledPlatforms.modelMesh}
             onChange={(e, enabled) => {

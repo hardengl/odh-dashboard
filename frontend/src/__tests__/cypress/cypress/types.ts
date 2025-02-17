@@ -35,7 +35,9 @@ export type AWSS3BucketDetails = {
 export type AWSS3Buckets = {
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;
+  BUCKET_1: AWSS3BucketDetails;
   BUCKET_2: AWSS3BucketDetails;
+  BUCKET_3: AWSS3BucketDetails;
 };
 
 export type DataConnectionReplacements = {
@@ -80,6 +82,47 @@ export type PVCReplacements = {
   PVC_SIZE: string;
 };
 
+export type WBEditTestData = {
+  editTestNamespace: string;
+  editedTestNamespace: string;
+  editedTestDescription: string;
+  pvcEditDisplayName: string;
+};
+
+export type WBControlSuiteTestData = {
+  controlSuiteTestNamespace: string;
+  controlSuiteTestDescription: string;
+};
+
+export type WBVariablesTestData = {
+  wbVariablesTestNamespace: string;
+  wbVariablesTestDescription: string;
+  configMapYamlPath: string;
+  secretYamlPath: string;
+  MY_VAR2: string;
+  MY_VAR1: string;
+  FAKE_ID: string;
+  FAKE_VALUE: string;
+  FAKE_SECRET_KEY: string;
+  FAKE_SECRET_VALUE: string;
+  FAKE_CM_KEY: string;
+  FAKE_CM_VALUE: string;
+};
+
+export type WBTolerationsTestData = {
+  wbTolerationsTestNamespace: string;
+  wbTolerationsTestDescription: string;
+  workbenchName: string;
+  tolerationValue: string;
+  tolerationValueUpdate: string;
+  workbenchName2: string;
+};
+
+export type WBStatusTestData = {
+  wbStatusTestNamespace: string;
+  wbStatusTestDescription: string;
+};
+
 export type CommandLineResult = {
   code: number;
   stdout: string;
@@ -92,6 +135,8 @@ export type TestConfig = {
   OCP_ADMIN_USER: UserAuthConfig;
   S3: AWSS3Buckets;
   APPLICATIONS_NAMESPACE: NamespaceConfig;
+  PIP_INDEX_URL: string;
+  PIP_TRUSTED_HOST: string;
 };
 
 export type DataScienceProjectData = {
@@ -100,6 +145,28 @@ export type DataScienceProjectData = {
   projectResourceName: string;
   projectPermissionResourceName: string;
   projectContributorResourceName: string;
+  projectEditName: string;
+  projectEditDescription: string;
+  projectEditResourceName: string;
+  projectEditUpdatedName: string;
+  projectSingleModelDisplayName: string;
+  projectSingleModelResourceName: string;
+  singleModelName: string;
+  modelFilePath: string;
+  projectSingleModelAdminDisplayName: string;
+  projectSingleModelAdminResourceName: string;
+  singleModelAdminName: string;
+  modelOpenVinoPath: string;
+  projectMultiModelAdminDisplayName: string;
+  projectMultiModelAdminResourceName: string;
+  multiModelAdminName: string;
+  modelOpenVinoExamplePath: string;
+  projectDCResourceName: string;
+  projectPVStorageResourceName: string;
+  pvStorageName: string;
+  pvStorageDescription: string;
+  pvStorageNameEdited: string;
+  invalidResourceNames: string[];
 };
 
 export type NotebookImageData = {
@@ -170,6 +237,17 @@ export type ResourcesData = {
     CustomTutorial: ResourceData[];
   };
 };
+
 export type NamespaceConfig = {
   APPLICATIONS_NAMESPACE: string;
+};
+
+enum OOTBConnectionTypes {
+  s3 = 'S3 compatible object storage - v1',
+  uri = 'URI - v1',
+}
+
+export type OOTBConnectionTypesData = {
+  s3: OOTBConnectionTypes.s3;
+  uri: OOTBConnectionTypes.uri;
 };

@@ -152,6 +152,11 @@ class DetailsItem extends Contextual<HTMLElement> {
   findValue() {
     return this.find().findByTestId('detail-item-value');
   }
+
+  shouldHaveCodeEditorValue(name: string) {
+    this.findValue().find('section').contains(name);
+    return this;
+  }
 }
 
 class PipelineDetails extends PipelinesTopology {
@@ -166,7 +171,7 @@ class PipelineDetails extends PipelinesTopology {
     this.pipelineVersionSelector
       .findToggleButton()
       .click()
-      .parents()
+      .document()
       .findByTestId('pipeline-version-selector-table-list')
       .find('td')
       .contains(name)

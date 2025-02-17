@@ -205,7 +205,7 @@ describe('ClusterStorage', () => {
     //connect workbench
     addClusterStorageModal.findAddWorkbenchButton().click();
     addClusterStorageModal.findWorkbenchTable().should('exist');
-    addClusterStorageModal.findWorkbenchSelect(0).should('have.attr', 'disabled');
+    addClusterStorageModal.findWorkbenchName(0).should('have.attr', 'disabled');
     addClusterStorageModal.findWorkbenchSelectValueField(0).should('have.value', 'Test Notebook');
 
     //don't allow duplicate path
@@ -291,7 +291,7 @@ describe('ClusterStorage', () => {
     const clusterStorageRow = clusterStorage.getClusterStorageRow('Existing PVC');
     clusterStorageRow.findKebabAction('Edit storage').click();
     updateClusterStorageModal.findAddWorkbenchButton().click();
-    addClusterStorageModal.findWorkbenchSelect(1).should('have.attr', 'disabled');
+    addClusterStorageModal.findWorkbenchName(1).should('have.attr', 'disabled');
     addClusterStorageModal
       .findWorkbenchSelectValueField(1)
       .should('have.value', 'Another Notebook');
@@ -338,11 +338,9 @@ describe('ClusterStorage', () => {
     clusterStorageRow.findStorageClassColumn().should('not.exist');
     clusterStorageRow.shouldHaveStorageTypeValue('Persistent storage');
     clusterStorageRow.findConnectedWorkbenches().should('have.text', 'No connections');
-    clusterStorageRow.toggleExpandableContent();
-    clusterStorageRow.shouldHaveStorageSize('5Gi');
+    clusterStorageRow.findSizeColumn().contains('5GiB');
 
     //sort by Name
-    clusterStorage.findClusterStorageTableHeaderButton('Name').click();
     clusterStorage.findClusterStorageTableHeaderButton('Name').should(be.sortAscending);
     clusterStorage.findClusterStorageTableHeaderButton('Name').click();
     clusterStorage.findClusterStorageTableHeaderButton('Name').should(be.sortDescending);
@@ -354,8 +352,7 @@ describe('ClusterStorage', () => {
     const clusterStorageRow = clusterStorage.getClusterStorageRow(
       'Updated storage with no workbench',
     );
-    clusterStorageRow.toggleExpandableContent();
-    clusterStorageRow.shouldHaveStorageSize('Max 13Gi');
+    clusterStorageRow.findSizeColumn().should('have.text', 'Max 13GiB');
     clusterStorageRow.findStorageSizeWarning();
     clusterStorageRow.findStorageSizeWarning().should('exist');
   });

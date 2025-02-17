@@ -50,6 +50,13 @@ const mockVersion2 = buildMockPipelineVersion({
 const mockRun = buildMockRunKF({
   display_name: 'test-pipeline-run',
   run_id: 'test-pipeline-run-id',
+  runtime_config: {
+    parameters: {
+      min_max_scaler: false,
+      neighbors: 1,
+      standard_scaler: '["test-1", "test-2", "test-3", "test-4"]',
+    },
+  },
   pipeline_version_reference: {
     pipeline_id: mockPipeline.pipeline_id,
     pipeline_version_id: mockVersion.pipeline_version_id,
@@ -465,9 +472,15 @@ describe('Pipeline topology', () => {
         .findValue()
         .contains(mockRecurringRun.display_name);
       pipelineRunDetails.findDetailItem('Workflow name').findValue().contains('test-pipeline');
-      pipelineRunDetails.findDetailItem('Started').findValue().contains('March 15, 2024');
-      pipelineRunDetails.findDetailItem('Finished').findValue().contains('March 15, 2024');
-      pipelineRunDetails.findDetailItem('Duration').findValue().contains('0:50');
+      pipelineRunDetails
+        .findDetailItem('Started')
+        .findValue()
+        .contains('Friday, March 15, 2024 at 5:59:35 PM UTC');
+      pipelineRunDetails
+        .findDetailItem('Finished')
+        .findValue()
+        .contains('Friday, March 15, 2024 at 6:00:25 PM UTC');
+      pipelineRunDetails.findDetailItem('Duration').findValue().contains('50 seconds');
     });
 
     it('Test pipeline triggered run tab parameters', () => {
@@ -476,6 +489,9 @@ describe('Pipeline topology', () => {
       pipelineRunDetails.findInputParameterTab().click();
       pipelineRunDetails.findDetailItem('min_max_scaler').findValue().contains('False');
       pipelineRunDetails.findDetailItem('neighbors').findValue().contains('1');
+      pipelineRecurringRunDetails
+        .findDetailItem('standard_scaler')
+        .shouldHaveCodeEditorValue('test-1');
     });
 
     it('Test pipeline triggered run YAML output', () => {
@@ -676,9 +692,15 @@ describe('Pipeline topology', () => {
 
       pipelineRunDetails
         .findLogs()
+        .should('be.visible')
         .contains(
           'sample log for namespace test-project, pod name iris-training-pipeline-v4zp7-2757091352 and for step step-main',
-        );
+        )
+        .and(($el) => {
+          expect($el.width()).to.be.greaterThan(0);
+          expect($el.height()).to.be.greaterThan(0);
+        });
+
       // test whether single step logs download dropdown item is enabled when logs are available
       pipelineRunDetails.findDownloadStepsToggle().click();
       pipelineRunDetails.findCurrentStepLogs().should('not.be.disabled');

@@ -22,6 +22,8 @@ import ProjectsContextProvider from '~/concepts/projects/ProjectsContext';
 import { ModelRegistrySelectorContextProvider } from '~/concepts/modelRegistry/context/ModelRegistrySelectorContext';
 import useStorageClasses from '~/concepts/k8s/useStorageClasses';
 import AreaContextProvider from '~/concepts/areas/AreaContext';
+import { NimContextProvider } from '~/concepts/nimServing/NIMAvailabilityContext';
+import { AccessReviewProvider } from '~/concepts/userSSAR';
 import useDevFeatureFlags from './useDevFeatureFlags';
 import Header from './Header';
 import AppRoutes from './AppRoutes';
@@ -33,6 +35,7 @@ import TelemetrySetup from './TelemetrySetup';
 import { logout } from './appUtils';
 import QuickStarts from './QuickStarts';
 import DevFeatureFlagsBanner from './DevFeatureFlagsBanner';
+import SessionExpiredModal from './SessionExpiredModal';
 
 import './App.scss';
 
@@ -67,9 +70,16 @@ const App: React.FC = () => {
     [buildStatuses, dashboardConfig, storageClasses],
   );
 
+  const isUnauthorized = fetchConfigError?.request?.status === 403;
+
   // We lack the critical data to startup the app
   if (userError || fetchConfigError) {
-    // There was an error fetching critical data
+    // Check for unauthorized state
+    if (isUnauthorized) {
+      return <SessionExpiredModal />;
+    }
+
+    // Default error handling for other cases
     return (
       <Page>
         <PageSection hasBodyWrapper={false}>
@@ -108,39 +118,43 @@ const App: React.FC = () => {
         </Bullseye>
       ) : (
         <AppContext.Provider value={contextValue}>
-          <Page
-            className="odh-dashboard"
-            isManagedSidebar
-            isContentFilled
-            masthead={
-              <Header onNotificationsClick={() => setNotificationsOpen(!notificationsOpen)} />
-            }
-            sidebar={isAllowed ? <NavSidebar /> : undefined}
-            notificationDrawer={
-              <AppNotificationDrawer onClose={() => setNotificationsOpen(false)} />
-            }
-            isNotificationDrawerExpanded={notificationsOpen}
-            mainContainerId={DASHBOARD_MAIN_CONTAINER_ID}
-            data-testid={DASHBOARD_MAIN_CONTAINER_ID}
-            banner={
-              <DevFeatureFlagsBanner
-                dashboardConfig={dashboardConfig.spec.dashboardConfig}
-                {...devFeatureFlagsProps}
-              />
-            }
-          >
-            <ErrorBoundary>
-              <ProjectsContextProvider>
-                <ModelRegistrySelectorContextProvider>
-                  <QuickStarts>
-                    <AppRoutes />
-                  </QuickStarts>
-                </ModelRegistrySelectorContextProvider>
-              </ProjectsContextProvider>
-              <ToastNotifications />
-              <TelemetrySetup />
-            </ErrorBoundary>
-          </Page>
+          <AccessReviewProvider>
+            <Page
+              className="odh-dashboard"
+              isManagedSidebar
+              isContentFilled
+              masthead={
+                <Header onNotificationsClick={() => setNotificationsOpen(!notificationsOpen)} />
+              }
+              sidebar={isAllowed ? <NavSidebar /> : undefined}
+              notificationDrawer={
+                <AppNotificationDrawer onClose={() => setNotificationsOpen(false)} />
+              }
+              isNotificationDrawerExpanded={notificationsOpen}
+              mainContainerId={DASHBOARD_MAIN_CONTAINER_ID}
+              data-testid={DASHBOARD_MAIN_CONTAINER_ID}
+              banner={
+                <DevFeatureFlagsBanner
+                  dashboardConfig={dashboardConfig.spec.dashboardConfig}
+                  {...devFeatureFlagsProps}
+                />
+              }
+            >
+              <ErrorBoundary>
+                <NimContextProvider>
+                  <ProjectsContextProvider>
+                    <ModelRegistrySelectorContextProvider>
+                      <QuickStarts>
+                        <AppRoutes />
+                      </QuickStarts>
+                    </ModelRegistrySelectorContextProvider>
+                  </ProjectsContextProvider>
+                </NimContextProvider>
+                <ToastNotifications />
+                <TelemetrySetup />
+              </ErrorBoundary>
+            </Page>
+          </AccessReviewProvider>
         </AppContext.Provider>
       )}
     </AreaContextProvider>

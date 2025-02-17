@@ -1,5 +1,5 @@
 import { K8sResourceCommon, MatchExpression } from '@openshift/dynamic-plugin-sdk-utils';
-import { EitherNotBoth, EitherOrNone } from '@openshift/dynamic-plugin-sdk';
+import { EitherNotBoth } from '@openshift/dynamic-plugin-sdk';
 import { AwsKeys } from '~/pages/projects/dataConnections/const';
 import { StackComponent } from '~/concepts/areas/types';
 import {
@@ -28,6 +28,7 @@ export enum KnownLabels {
   PROJECT_SUBJECT = 'opendatahub.io/rb-project-subject',
   REGISTERED_MODEL_ID = 'modelregistry.opendatahub.io/registered-model-id',
   MODEL_VERSION_ID = 'modelregistry.opendatahub.io/model-version-id',
+  MODEL_REGISTRY_NAME = 'modelregistry.opendatahub.io/name',
 }
 
 export type K8sVerb =
@@ -453,6 +454,12 @@ export type SupportedModelFormats = {
   autoSelect?: boolean;
 };
 
+export enum DeploymentMode {
+  ModelMesh = 'ModelMesh',
+  RawDeployment = 'RawDeployment',
+  Serverless = 'Serverless',
+}
+
 export type InferenceServiceAnnotations = Partial<{
   'security.opendatahub.io/enable-auth': string;
 }>;
@@ -469,16 +476,12 @@ export type InferenceServiceKind = K8sResourceCommon & {
     namespace: string;
     annotations?: InferenceServiceAnnotations &
       DisplayNameAnnotations &
-      EitherOrNone<
-        {
-          'serving.kserve.io/deploymentMode': 'ModelMesh' | 'RawDeployment';
-        },
-        {
-          'serving.knative.openshift.io/enablePassthrough': 'true';
-          'sidecar.istio.io/inject': 'true';
-          'sidecar.istio.io/rewriteAppHTTPProbers': 'true';
-        }
-      >;
+      Partial<{
+        'serving.kserve.io/deploymentMode': DeploymentMode;
+        'serving.knative.openshift.io/enablePassthrough': 'true';
+        'sidecar.istio.io/inject': 'true';
+        'sidecar.istio.io/rewriteAppHTTPProbers': 'true';
+      }>;
     labels?: InferenceServiceLabels;
   };
   spec: {
@@ -1191,16 +1194,19 @@ export type DashboardCommonConfig = {
   disableKServeAuth: boolean;
   disableKServeMetrics: boolean;
   disableKServeRaw: boolean;
+  disableKServeOCIModels: boolean;
   disableModelMesh: boolean;
   disableAcceleratorProfiles: boolean;
   disableHardwareProfiles: boolean;
   disableDistributedWorkloads: boolean;
+  disableModelCatalog: boolean;
   disableModelRegistry: boolean;
   disableModelRegistrySecureDB: boolean;
   disableServingRuntimeParams: boolean;
-  disableConnectionTypes: boolean;
   disableStorageClasses: boolean;
   disableNIMModelServing: boolean;
+  disableAdminConnectionTypes: boolean;
+  disableFineTuning: boolean;
 };
 
 export type DashboardConfigKind = K8sResourceCommon & {
@@ -1266,9 +1272,72 @@ export type K8sResourceListResult<TResource extends Partial<K8sResourceCommon>> 
   };
 };
 
+export type DataScienceClusterKind = K8sResourceCommon & {
+  metadata: {
+    name: string;
+  };
+  spec: {
+    components?: {
+      codeflare?: {
+        managementState: string;
+      };
+      kserve?: {
+        defaultDeploymentMode: string;
+        managementState: string;
+        nim: {
+          managementState: string;
+        };
+        serving: {
+          ingressGateway: {
+            certificate: {
+              type: string;
+            };
+          };
+          managementState: string;
+          name: string;
+        };
+      };
+      modelregistry?: {
+        managementState: string;
+        registriesNamespace: string;
+      };
+      trustyai?: {
+        managementState: string;
+      };
+      ray?: {
+        managementState: string;
+      };
+      kueue?: {
+        managementState: string;
+      };
+      workbenches?: {
+        managementState: string;
+      };
+      dashboard?: {
+        managementState: string;
+      };
+      modelmeshserving?: {
+        managementState: string;
+      };
+      datasciencepipelines?: {
+        managementState: string;
+        managedPipelines: { instructLab: { state: string } };
+      };
+      trainingoperator?: {
+        managementState: string;
+      };
+    };
+  };
+  status?: DataScienceClusterKindStatus;
+};
+
 /** We don't need or should ever get the full kind, this is the status section */
 export type DataScienceClusterKindStatus = {
   components?: {
+    kserve?: {
+      defaultDeploymentMode?: string;
+      serverlessMode?: string;
+    };
     modelregistry?: {
       registriesNamespace?: string;
     };
@@ -1322,7 +1391,20 @@ export type ModelRegistryKind = K8sResourceCommon & {
         port?: number;
         skipDBCreation?: boolean;
         username?: string;
-      };
+      } & EitherNotBoth<
+        {
+          sslRootCertificateConfigMap?: {
+            name: string;
+            key: string;
+          } | null;
+        },
+        {
+          sslRootCertificateSecret?: {
+            name: string;
+            key: string;
+          } | null;
+        }
+      >;
     },
     {
       postgres?: {
