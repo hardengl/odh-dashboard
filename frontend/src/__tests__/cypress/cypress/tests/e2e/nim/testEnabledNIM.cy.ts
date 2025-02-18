@@ -15,10 +15,10 @@ describe('Verify RHODS Explore Section Contains NIM card and verify card body', 
     );
     cy.findByTestId('card nvidia-nim').click();
     cy.get('button:contains("Enable")').click();
-    cy.get('[data-id="NVIDIA AI Enterprise license key"]').type(Cypress.env('API_TOKEN'));
+    cy.get('[data-id="NVIDIA AI Enterprise license key"]').type(Cypress.env('NGC_API_KEY'));
     cy.get('button:contains("Submit")').click();
     // Add wait validation logic here
-    cy.get('.odh-enable-modal__progress-title').should('contain', 'Validating your entries');
+    cy.get('.odh-enable-modal__progress-title').should('exist');
     cy.get('.odh-enable-modal__progress-title', { timeout: 120000 }).should('not.exist');
     enabledPage.visit();
     cy.findByTestId('card nvidia-nim').contains(

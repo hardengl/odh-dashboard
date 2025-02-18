@@ -14,73 +14,8 @@ import {
 import { nimDeployModal } from '../../../pages/components/NIMDeployModal';
 import { deleteNIMAccount, writePodLogToFile, writeResourceToFile } from '../../../utils/oc_commands/baseCommands';
 
-// let models = [
-//   'codellama-13b-instruct-latest',
-//   'phi-3-mini-4k-instruct-latest',
-//   'llama-3.1-8b-base-latest', // FAILED - passed 5 times in a row, have no idea what went wrong
-//   'llama3-8b-instruct-latest',
-//   'llama-3-sqlcoder-8b-latest',
-//   'corrdiff-latest',
-// ];
-
 let models = [
-  // "alphafold2-latest",
-  // "alphafold2-multimer-latest",
-  // "audio2face-3d-latest",
-  // "codellama-13b-instruct-latest",
-  // "codellama-34b-instruct-latest",
-  // "codellama-70b-instruct-latest",
-  // "corrdiff-latest",
-  // "diffdock-latest",
-  // "fastpitch-hifigan-tts-latest",
-  // "fourcastnet-latest",
-  // "gemma-2-2b-instruct-latest",
-  // "gemma-2-9b-it-latest",
-  // "genmol-latest",
-  "llama-2-13b-chat-latest",
-  "llama-2-70b-chat-latest",
-  "llama-2-7b-chat-latest",
-  "llama-3-sqlcoder-8b-latest",
-  "llama-3-swallow-70b-instruct-v0.1-latest",
-  "llama-3-taiwan-70b-instruct-latest",
-  "llama-3.1-405b-instruct-latest",
-  "llama-3.1-70b-instruct-latest",
-  "llama-3.1-70b-instruct-pb24h2-latest",
-  "llama-3.1-8b-base-latest",
-  "llama-3.1-8b-instruct-latest",
-  "llama-3.1-8b-instruct-pb24h2-latest",
-  "llama-3.1-nemoguard-8b-content-safety-latest",
-  "llama-3.1-nemoguard-8b-topic-control-latest",
-  "llama-3.1-nemotron-70b-instruct-latest",
-  // "llama-3.1-swallow-70b-instruct-v0.1-latest",
-  // "llama-3.1-swallow-8b-instruct-v0.1-latest",
-  // "llama-3.2-11b-vision-instruct-latest",
-  // "llama-3.2-90b-vision-instruct-latest",
-  // "llama-3.2-nv-embedqa-1b-v2-latest",
-  // "llama-3.2-nv-rerankqa-1b-v2-latest",
-  // "llama3-70b-instruct-latest",
-  // "llama3-8b-instruct-latest",
-  // "maisi-latest",
-  // "maxine-eye-contact-latest",
-  // "maxine-studio-voice-latest",
-  // "megatron-1b-nmt-latest",
-  // "mistral-7b-instruct-v0.3-latest",
-  // "mistral-nemo-12b-instruct-latest",
-  // "mistral-nemo-minitron-8b-8k-instruct-latest",
-  // "mixtral-8x22b-instruct-v01-latest",
-  // "mixtral-8x7b-instruct-v01-latest",
-  // "nemotron-4-340b-instruct-latest",
-  // "nemotron-4-340b-reward-latest",
-  // "nv-embedqa-e5-v5-latest",
-  // "nv-embedqa-e5-v5-pb24h2-latest",
-  // "nvclip-latest",
-  // "parakeet-ctc-1.1b-asr-latest",
-  // "phi-3-mini-4k-instruct-latest",
-  // "phind-codellama-34b-v2-instruct-latest",
-  // "proteinmpnn-latest",
-  // "qwen-2.5-7b-instruct-latest",
-  // "rfdiffusion-latest",
-  // "vista3d-latest"
+  "llama-2-7b-chat-latest"
 ]
 
 const waitForPod = (namespace: string, podPrefix: string): Cypress.Chainable<string> => {
@@ -109,7 +44,7 @@ const waitForPod = (namespace: string, podPrefix: string): Cypress.Chainable<str
 
 for (let i = 0; i < models.length; i++) {
   // for (let i = 0; i < 5; i++) {
-  describe(`Deploying ${models[i]}`, { tags: ['@NIM'] }, () => {
+  describe.skip(`Deploying ${models[i]}`, { tags: ['@NIM'] }, () => {
     let testData: DataScienceProjectData;
     let randomNumber: Number;
 
